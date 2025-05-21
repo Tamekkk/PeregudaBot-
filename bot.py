@@ -1,5 +1,7 @@
 import logging
 import re
+import os
+from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types, Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -7,13 +9,20 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from openai import AsyncOpenAI
 
+# Загрузка переменных окружения из .env файла
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-OPENROUTER_API_KEY = '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'
-client = AsyncOpenAI(base_url="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY)
+# Получение токенов из переменных окружения
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
-TELEGRAM_TOKEN = '7892568396:AAFWUQz4ls5nRP_ACWtWYlakPih7y6eqLMQ'
+if not OPENROUTER_API_KEY or not TELEGRAM_TOKEN:
+    raise ValueError("Необходимо указать OPENROUTER_API_KEY и TELEGRAM_TOKEN в .env файле")
+
+client = AsyncOpenAI(base_url="https://openrouter.ai/api/v1", api_key=OPENROUTER_API_KEY)
 bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 dp = Dispatcher()
 router = Router()
@@ -23,10 +32,10 @@ user_context = {}
 HISTORY_LIMIT = 10
 
 @router.message(Command('start'))
-async def start(message: types.Message):0
+async def start(message: types.Message):
     user_id = message.from_user.id
     user_context[user_id] = []
-    await message.answer("Привет! Я готов ответить на твои вопросы .")
+    await message.answer("Привет! Я готов ответить на твои вопросы.")
 
 @router.message(Command('clear'))
 async def clear_history(message: types.Message):
